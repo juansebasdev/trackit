@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+{% block title %}Dispositivos{% endblock %}
+
+
+{% block content %}
+    <section class="about">
+        <div class="container">
+            <div class="row mt-3">
+                <div class="col-md-9 mx-auto mt-5">
+                    <div class="section-title" data-aos="fade-up">
+                        <h2>Dispositivos</h2>
+                    </div>
+                    {% if 'register' in request.GET %}
+                        <p style="color: green;">Dispositivo registrado correctamente, ya puedes consultar su ubicación.</p>
+                    {% endif %}
+                    {% if 'update' in request.GET %}
+                        <p style="color: green;">Cambios aplicados correctamente.</p>
+                    {% endif %}
+                    {% if not device_list %}
+                        <p class="text-muted">Todavía no tienes dispositivos registrados.<a href="{% url 'search:device_register' %}"> Agrega el primero ahora</a></p>
+                    {% else %}
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="row">Nombre</th>
+                                    <th scope="row"></th>
+                                    <th scope="row">Plan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for device in device_list %}
+                                    <tr>
+                                        <td>{{device.name}}</td>
+                                        <td><a href="{% url 'search:device' device.id %}"><i class="bx bx-edit-alt"></i><span>Editar</span></a><br>
+                                        <a href="{% url 'search:device_delete' device.pk %}"><i class="bx bx-trash-alt"></i><span>Eliminar</span></a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <p><a href="{% url 'search:device_register' %}"><i class="bx bx-plus"></i><span>Añadir dispositivo</span></a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

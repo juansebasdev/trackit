@@ -1,0 +1,253 @@
+{% extends 'core/base.html' %}
+{% block title %}Mapa{% endblock %}
+
+{% load static %}
+
+{% block include_head %}
+     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+   crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+   crossorigin=""></script>
+{% endblock %}
+
+{% block content %}
+    <section class="about">
+        <div class="container">
+            <div class="row mt-3">
+                <div class="col-md-3 mx-auto mt-5">
+                   <div class="dropdown mt-3 ml-2">
+                        <h4 class="dropdown-header">Dispositivo</h4>
+                        {% if not devices %}
+                            <p class="mt-1 ml-2" style="color:red;">Aún no tienes dispositivos<br>
+                            <a href="{% url 'search:device_register' %}"><i class="bx bx-plus"></i><span>Añadir dispositivo</span></a></p>
+                        {% else %}
+                            <select id="device" onchange="WhichDevice()" class="form-control form-control-sm col-10 ml-2 mt-3">
+                            <option value="selection" disabled selected>Seleccionar Dispositivo</option>
+                            {% if devices|length > 1%}
+                                <option value="all">Todos</option>
+                            {% endif %}
+                            {% for device in devices %}
+                                <option value={{device.id}}>{{device.name}}</option>
+                            {% endfor %}
+                            </select>
+                            <p class="ml-2 mt-2" id="message" style="color:red;"></p>
+                            <button class="btn btn-primary ml-2 mt-2" type="submit" id="locate_btn"><i class="bx bx-map mr-1"></i><span>Localizar</button>
+                            <div class="dropdown-divider"></div>
+                            <h4 id="route_title" class="dropdown-header">Recorridos</h4>
+                            <select id="route" onchange="WhichRoute()" class="form-control form-control-sm col-10 ml-2 mt-3">
+                                <option value="selection" disabled selected>Seleccionar Recorrido</option>
+                            </select>
+                            <p class="ml-2 mt-2" id="message2" style="color:red;"></p>
+                            <a id="start" class="btn btn-primary ml-2 mt-2" href="{% url 'search:route_start' %}"><i class="bx bx-navigation mr-1"></i><span>Nuevo Recorrido</span></a></p>
+                            <button id="stop" onclick="Stop()" class="btn btn-primary ml-2 mt-2"><i class="bx bxs-flag-alt mr-1"></i><span>Finalizar Recorrido</span></button></p>
+                        {% endif %}
+                        
+                    </div>
+                </div>
+                <div class="col-md-9 mx-auto mt-5">
+                    <div id="mapid" class="mt-3">
+                    </div>
+                    {% comment %} <iframe class="mt-3"
+                        width="800"
+                        height="480"
+                        frameborder="0" style="border:0"
+                        src="https://www.google.com/maps/embed/v1/search?key=AIzaSyB6VKqqnsgYiYq2r0oW14T22aHLM4sNFMI
+                        &q=1.214839,-77.278744
+                        &zoom=18" allowfullscreen>
+                    </iframe> {% endcomment %}
+                </div>
+            </div>
+        </div>
+    </section>
+<script>
+    var stop = document.getElementById("stop")
+    stop.style.display = "none";
+    {% if devices %}
+    var routeTitle = document.getElementById("route_title");
+    var route = document.getElementById("route");
+    
+    //routeTitle.style.display = "none";
+    route.style.display = "none";
+
+    var locate = document.getElementById("locate_btn").addEventListener("click", function(){
+        var device = document.getElementById("device");
+        var message = document.getElementById("message");
+        if (device.value=="selection"){
+            message.innerHTML = "Seleccione un dispositivo";
+        }
+    });
+    {% endif %}
+    var markers = [];
+    var markersLayer = new L.LayerGroup();
+    var polyLayer = new L.LayerGroup();
+
+    markersLayer.clearLayers();
+
+    var colorIcon = L.Icon.extend({
+        options: {
+            iconSize:     [25, 40], // size of the icon
+            iconAnchor:   [12, 42], // point of the icon which will correspond to marker's location
+            popupAnchor:  [1, -35] // point from which the popup should open relative to the iconAnchor
+        }
+    });
+
+    var mymap = L.map('mapid').setView([1.214031, -77.278495], 15);
+    
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoianVhbnNlOTYiLCJhIjoiY2tmMWxndzZvMTlzeTMycDN0cHZtb3E5cyJ9.rx_Lf-N0A3VfcjA5dPhyEQ', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoianVhbnNlOTYiLCJhIjoiY2tmMWxndzZvMTlzeTMycDN0cHZtb3E5cyJ9.rx_Lf-N0A3VfcjA5dPhyEQ'
+    }).addTo(mymap);
+
+    function WhichDevice(){
+        //routeTitle.style.display = "none";
+        var start = document.getElementById("start")
+        start.style.display = "inline-flex";
+        route.style.display = "none";
+        stop.style.display = "none";
+        for(var i =1;i<route.length;i++){
+            route.remove(i);
+        }
+        var locationCoor = [];
+        var message = document.getElementById("message");
+        var device = document.getElementById("device");
+
+        if (device.value=="selection"){
+            window.location.reload();
+        }else{
+            const url = "{% url 'search:selected_device' %}" + "?dev=" + device.value;
+            //console.log(url);
+            fetch(url, {'credentials':'include'}).then(response => response.json()).then(function(data){
+                if(data.created){
+                    if(data.all){
+                        if(data.location==false){
+                            message.innerHTML = "No hay coordenadas registradas."
+                        }else{
+                            route.options[0].selected=true;
+                            polyLayer.clearLayers();
+                            markersLayer.clearLayers()
+                            for(var i=0;i<data.location.length;i++){
+                                var name = data.location[i].device;
+                                var url = data.location[i].icon
+                                var deviceIcon = new colorIcon({iconUrl:url});
+                                var marker = L.marker([data.location[i].lat, data.location[i].long], {icon:deviceIcon}).bindPopup(name.toUpperCase().bold()+"<br>Última Ubicación");
+                                locationCoor[i] = [data.location[i].lat, data.location[i].long];
+                                markersLayer.addLayer(marker);
+                            }
+                            markersLayer.addTo(mymap);
+                            message.innerHTML = "";
+                            message2.innerHTML = "";
+                            var bounds = new L.latLngBounds(locationCoor);
+                            mymap.fitBounds(bounds, {padding: [50,50]});
+                            markers.length = 0
+                            if(data.routes==false){
+                                message2.style.color = "red";
+                                message2.innerHTML = "No hay recorridos guardados."
+                            }else{
+                                //routeTitle.style.display = "flex";
+                                route.style.display = "flex";
+                                var options = [];
+                                for(var i=0;i<data.routes.length;i++){
+                                    options[i] = data.routes[i];
+                                    route[route.options.length] = new Option(options[i].name, options[i].value);
+                                }
+                            }
+                        }
+                    }else{
+                        route.options[0].selected=true;
+                        markersLayer.clearLayers()
+                        polyLayer.clearLayers();
+                        var name = data.name;
+                        var url = data.icon;
+                        var deviceIcon = new colorIcon({iconUrl:url});
+                        var marker = L.marker([data.lat, data.long], {icon:deviceIcon}).bindPopup(name.toUpperCase().bold()+"<br>Última Ubicación");
+                        markersLayer.addLayer(marker);
+                        markersLayer.addTo(mymap);
+                        mymap.setView([data.lat, data.long], 15);
+                        marker.openPopup();
+                        message.innerHTML = "";
+                        message2.innerHTML = "";
+                        for(var i =1;i<route.length;i++){
+                            route.remove(i);
+                        }
+                        if(data.routes==false){
+                            message2.style.color = "red"
+                            message2.innerHTML = "No hay recorridos guardados."
+                        }else{
+                            //routeTitle.style.display = "flex";
+                            route.style.display = "flex";
+                            var options = [];
+                            for(var i=0;i<data.routes.length;i++){
+                                options[i] = data.routes[i];
+                                route[route.options.length] = new Option(options[i].name, options[i].value);
+                            }
+                        }
+                    }
+                }else{
+                    console.log("Algo ha fallado");
+                    message.innerHTML = "Todavía no hay registros para este dispositivo"
+                    markersLayer.clearLayers();
+                    polyLayer.clearLayers();
+                }
+            });
+        }
+    };
+
+    function WhichRoute(){
+        var start = document.getElementById("start");
+        if (route.value=="selection"){
+            window.location.reload();
+        }else{
+            const url = "{% url 'search:selected_route' %}" + "?rt=" + route.value;
+            fetch(url, {'credentials':'include'}).then(response => response.json()).then(function(data){
+                if(data.created){
+                    //markersLayer.clearLayers();
+                    polyLayer.clearLayers();
+                    var name = data.route.name;
+                    var device = data.route.device;
+                    var activate = data.route.activate;
+                    if(activate==true){
+                        start.style.display = "none";
+                        stop.style.display = "inline-flex";
+                        message2.style.color = "green"
+                        message2.innerHTML = "Recorrido en Curso";
+                    }else{
+                        message2.innerHTML = "";
+                        start.style.display = "inline-flex";
+                        stop.style.display = "none";
+                    }
+                    if(data.coordinates.length>1){
+                        var polyline = L.polyline(data.coordinates, {color:'red'}).bindPopup(name.toUpperCase().bold() + "<br>" + device);
+                        locationCoor = data.coordinates;
+                        polyLayer.addLayer(polyline);
+                        polyLayer.addTo(mymap);
+                        polyline.openPopup();
+                        var bounds = new L.latLngBounds(locationCoor);
+                        mymap.fitBounds(bounds, {padding: [50,50]});
+                    }
+                }else{
+                    console.log("Algo ha fallado");
+                    //message.innerHTML = "Todavía no hay registros para este dispositivo"
+                    //markersLayer.clearLayers();
+                }
+            });
+        }
+    };
+    function Stop(){
+        var value = route.value;
+        console.log(value);
+        const url = "{% url 'search:route_stop' %}" + "?id=" + value;
+        fetch(url);
+        stop.style.display = "none";
+        message2.style.color = "red"
+        message2.innerHTML = "Finalizado";
+        start.style.display = "inline-flex"
+    };
+</script>
+{% endblock %}

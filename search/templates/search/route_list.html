@@ -1,0 +1,58 @@
+{% extends 'core/base.html' %}
+{% block title %}Recorridos{% endblock %}
+
+
+{% block content %}
+    <section class="about">
+        <div class="container">
+            <div class="row mt-3">
+                <div class="col-md-9 mx-auto mt-5">
+                    <div class="section-title" data-aos="fade-up">
+                        <h2>Recorridos</h2>
+                    </div>
+                    {% if 'started' in request.GET %}
+                        <p style="color: green;">Recorrido iniciado correctamente.</p>
+                    {% endif %}
+                    {% if not route_list %}
+                        <p class="text-muted">No has iniciado recorridos.<a href="{% url 'search:route_start' %}"> Nuevo Recorrido</a></p>
+                    {% else %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="row">Nombre</th>
+                                    <th scope="row">Dispositivo</th>
+                                    <th scope="row">Inicio</th>
+                                    <th scope="row">Estado</th>
+                                    <th scope="row"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for route in route_list %}
+                                    <tr>
+                                        <td>{{route.name}}</td>
+                                        <td>{{route.device}}</td>
+                                        <td>{{route.created|date:'Y-m-d H:i'}}</td>
+                                        <td>{% if route.activate %}<span style="color:green;font-weight:bold;">En Curso</span>{% else %}<span style="color:red;font-weight:bold;">Finalizado</span>{% endif %}
+                                        <br>{% if route.activate %}<button id="stop" onclick="stopFunction()" class="btn btn-info btn-sm" title="Terminar Recorrido" value={{route.id}}><i class="bx bxs-flag-alt"></i></button>{% endif %}
+                                        <a class="btn btn-danger btn-sm" title="Eliminar Recorrido" href="{% url 'search:route_delete' route.id %}"><i class="bx bx-trash-alt"></i></a><br>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <p><a href="{% url 'search:route_start' %}"><i class="bx bx-navigation"></i><span>Nuevo recorrido</span></a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        {% if route_list %}
+            function stopFunction(){
+                var stop = document.getElementById("stop");
+                const url = "{% url 'search:route_stop' %}" + "?id=" + stop.value;
+                fetch(url);
+                window.location.reload();
+            };
+        {% endif %}
+    </script>
+{% endblock %}

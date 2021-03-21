@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    <style>.errorlist{color:red;} label{display: none;}</style>
+    <section class="about">
+        <div class="container">
+            <div class="row mt-3">
+                <div class="col-md-9 mx-auto mb-5">
+                    {% if 'register' in request.GET %}
+                        <p style="color: green;">Usuario registrado correctamente, ya puedes identificarte.</p>
+                    {% endif %}
+                    <form action="" method="post">{% csrf_token %}
+                        <div class="section-title mt-3" data-aos="fade-up">
+                            <h2>Iniciar Sesión</h2>
+                        </div>
+                        {% if 'error' in request.GET %}
+                            <p style="color:red">Usuario o contraseña incorrectos, prueba de nuevo.</p>
+                        {% endif %}
+                        <p>
+                            <input type="text" name="username" autofocus maxlength="254" required
+                            id="id_username" class="form-control" placeholder="Nombre de usuario"/>
+                        </p>
+                        <p>
+                            <input type="password" name="password" required
+                            id="id_password" class="form-control" placeholder="Contraseña"/>
+                        </p>
+                        <p><input type="submit" class="btn btn-primary btn-block" value="Acceder"></p>
+                    </form>
+                    <p>¿Ha olvidado su clave?, la puede recuperar <a href="{% url 'password_reset' %}"> aquí </a>. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

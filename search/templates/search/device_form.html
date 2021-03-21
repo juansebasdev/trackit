@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+{% block title %}Dispositivo{% endblock %}
+
+{% block content %}
+    <style>.errorlist{color:red;} label{display: none;}</style>
+    <section class="about">
+        <div class="container">
+            <div class="row mt-3">
+                <div class="col-md-9 mx-auto mb-5">
+                    <form action="" method="post">{% csrf_token %}
+                      <div class="section-title" data-aos="fade-up">
+                        <h2>Dispositivo</h2>
+                      </div>
+                      {{form.name}}
+                        <div class=row>
+                            <div class="col-sm">
+                                <select class="form-control mb-3" name="marker" id ="marker_id" onchange="Color()" required>
+                                    <!--{% if not device.marker %}-->
+                                        <option value="" disabled selected>Seleccione un color para el marcador</option>
+                                    <!--{% endif %}-->
+                                    {% for marker in markers %}
+                                        <option value="{{marker.color}}" {% if marker.color == device.marker.color %}selected{% endif %}>
+                                            {{marker.name}}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm">
+                                <svg width="100" height="50"class="mt-1">
+                                    <rect id="square" width="80" height="30" style="fill:{% if device.marker %}{{device.marker.color}}{%else%}white{%endif%};stroke:black" />
+                                </svg>
+                            </div>
+                        </div>
+                      <input type="submit" class="btn btn-primary btn-block mt-3" value="Confirmar">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        function Color(){
+            var marker = document.getElementById("marker_id").value;
+            //console.log(marker);
+            var square = document.getElementById("square");
+            //console.log(square.style.fill);
+            square.style.fill = marker;
+        }
+    </script>
+{% endblock %}
