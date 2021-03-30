@@ -25,7 +25,7 @@ urlpatterns = [
     path('', core_views.home, name='home'),
     path('accounts/', include('registration.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('search', include(search_patterns)),
+    path('search/', include(search_patterns)),
 ]
 
 if settings.DEBUG:
