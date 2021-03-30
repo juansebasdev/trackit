@@ -25,7 +25,7 @@ SECRET_KEY = '4(%8g8z_y!o_+)ru$%3)we5o%r2m#$9nfqrzcf=5+j@uovpv#9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.1.200', 'trackit-omnia.duckdns.org',]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -79,12 +79,8 @@ WSGI_APPLICATION = 'trackit.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'trackit',
-        'USER': 'pi',
-        'PASSWORD': 'OEnj9u#DhhB7E)|*0',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -126,7 +122,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/pi/trackit-omnia/static'
 
 # Auth redirects
 #LOGIN_REDIRECT_URL = 'home'
@@ -147,4 +142,4 @@ else:
 
 # Media Files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/pi/trackit-omnia/media'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
