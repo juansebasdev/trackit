@@ -225,3 +225,16 @@ def is_route(request):
     else:
         raise Http404("User is not authenticated")
     return JsonResponse(json_response)
+
+def receive_coordinate(request):
+    json_reponse = {'created':False}
+    id = request.GET.get("id", None)
+    latitude = request.GET.get("lt", None)
+    longitude = request.GET.get("lg", None)
+
+    device = Device.objects.get(id=id)
+    Coordinate.objects.create(device=device, latitude=latitude, longitude=longitude)
+
+    json_reponse['created'] = True
+
+    return JsonResponse(json_reponse)

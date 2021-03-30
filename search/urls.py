@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MapView, DeviceListView, DeviceFormView, DeviceUpdateView, DeviceDelete, device_coordinate, device_route, Coordinate, RouteFormView, RouteListView, RouteDelete, route_stop, is_route
+from .views import MapView, DeviceListView, DeviceFormView, DeviceUpdateView, DeviceDelete, device_coordinate, device_route, Coordinate, RouteFormView, RouteListView, RouteDelete, route_stop, is_route, receive_coordinate
 
 search_patterns = ([
     path('map/', MapView.as_view(), name='map'),
@@ -14,4 +14,5 @@ search_patterns = ([
     path('map/device/', device_coordinate, name='selected_device'),
     path('map/route/', device_route, name='selected_route'),
     path('routes/is_route/', is_route, name='is_route'),
+    path('map/gprs/', receive_coordinate, name='receive')
 ], "search")
