@@ -1,1 +1,3 @@
-# TrackIt by Omnia
+# TrackIt
+
+Plataforma de GPS utilizando Django
